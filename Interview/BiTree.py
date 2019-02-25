@@ -38,3 +38,33 @@ def findTree(preList, midList, afterList):
 
 findTree(preList,midList,afterList)
 print afterList
+
+
+class Solution(object):
+    def buildTree_pre(self, preorder, inorder):
+        if not inorder or not preorder:
+            return None
+
+        root = TreeNode(preorder.pop(0))
+
+        root_index = inorder.index(root.val)
+
+        root.left = self.buildTree(preorder, inorder[:root_index])
+        root.right = self.buildTree(preorder, inorder[root_index + 1:])
+
+        return root
+
+    def buildTree_post(self, inorder, postorder):
+        
+        if not inorder or not postorder:
+            return None
+
+        root = TreeNode(postorder.pop())
+
+        root_index = inorder.index(root.val)
+
+        # root.left=self.buildTree(inorder[:root_index],postorder)
+        root.right = self.buildTree(inorder[root_index + 1:], postorder)
+        root.left = self.buildTree(inorder[:root_index], postorder)
+
+        return root
