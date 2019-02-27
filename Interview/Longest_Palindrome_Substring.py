@@ -21,7 +21,7 @@ class Solution(object):
 
         seq_len = 0
 
-        for seq_len in range(2, len(s) + 1):
+        for seq_len in range(3, len(s) + 1):
             for i in range(len(s) - seq_len + 1):
                 if s[i] == s[i + seq_len - 1] and dp[i + 1][i + seq_len - 2] == 1:
                     dp[i][i + seq_len - 1] = 1
@@ -46,7 +46,7 @@ def stringToString(input):
 
 
 def main():
-    s = stringToString("cbbd")
+    s = stringToString("babad")
 
     ret = Solution().longestPalindrome(s)
 
