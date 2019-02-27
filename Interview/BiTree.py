@@ -72,6 +72,18 @@ class BST_Solution(object):
 
         return root
 
+    def predecessor(self, node):
+        root = node
+        if root.left:
+            root = root.left
+            while root.right:
+                root = root.right
+            return root
+
+        while root.parent and root.parent.left == root:
+            root = root.parent
+        return root.parent
+
 
 class Solution(object):
     def inorderTraversal(self, root):
@@ -117,4 +129,48 @@ class Solution(object):
             else:
                 node = stack.pop()
                 node = node.left
+        return ans
+
+
+class K_Tree_Solution(object):
+    def preorder(self, root):
+        """
+        :type root: Node
+        :rtype: List[int]
+        """
+        if not root:
+            return []
+
+        # iterative
+        stack = [root]
+        ans = []
+        node = None
+
+        while stack:
+            node = stack.pop()
+            ans.append(node.val)
+            stack.extend(node.children[::-1])
+        return ans
+
+    def postorder(self, root):
+        """
+        :type root: Node
+        :rtype: List[int]
+        """
+        if not root:
+            return []
+
+        # iterative
+        stack = [root]
+        stack1 = []
+        ans = []
+
+        while stack:
+            node = stack.pop()
+            stack1.append(node)
+            stack.extend(node.children)
+
+        while stack1:
+            ans.append(stack1.pop().val)
+
         return ans
