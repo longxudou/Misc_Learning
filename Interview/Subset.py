@@ -40,5 +40,7 @@ def dfs(self, nums, index, path, res):
     for i in xrange(index, len(nums)):
         self.dfs(nums, i + 1, path + [nums[i]], res)
 
-        
+
 # print reduce(operator.xor,[1,1,2,2,4])
+for idx,char in enumerate('abc'):
+    print idx,char
