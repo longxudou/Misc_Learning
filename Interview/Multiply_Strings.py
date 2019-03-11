@@ -7,7 +7,7 @@ class Solution(object):
         """
         if num1=='0' or num2=='0':
             return '0'
-        
+
         ans = ['0'] * (len(num1) + len(num2))
 
         for i in range(len(num1) - 1, -1, -1):
