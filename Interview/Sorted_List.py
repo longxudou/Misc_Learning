@@ -16,6 +16,7 @@ class Solution(object):
 
         tmp2 = head
         while (tmp2.next):
+            pass
 
 
 def stringToListNode(input):
