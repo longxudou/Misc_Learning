@@ -14,8 +14,8 @@ class Point:
     def __str__(self):
         """Returns a string containing instance information."""
         f = lambda n: int(n)
-        return str(self.key) + ',\t' + str(f(self.x)) + ',\t' + str(f(self.y))
-
+        # return str(self.key) + ',\t' + str(f(self.x)) + ',\t' + str(f(self.y))
+        return str(self.key)
 
 def generate_points(num_of_points):
     start = time.clock()
@@ -23,10 +23,16 @@ def generate_points(num_of_points):
     graph_list = []
     point_num = 0
 
+    x_list = []
+    y_list = []
     while point_num < num_of_points:
-        point_info = (random.randint(0, 100), random.randint(0, 100))
-        while point_info not in graph_list:
-            graph_list.append(point_info)
+        x_info = random.randint(0, 100)
+        y_info = random.randint(0, 100)
+        # if x_info not in x_list and y_info not in y_list:
+        if (x_info,y_info) not in graph_list:
+            graph_list.append((x_info, y_info))
+            # x_list.append(x_info)
+            # y_list.append(y_info)
             point_num += 1
 
     graph = [Point(point_info[0], point_info[1], str(point_idx)) \
@@ -64,29 +70,42 @@ def sort_points(graph):
 
     def slope(a):
         """returns the slope of the 2 points."""
-
         return atan2(graph[0].x - a.x, a.y - graph[0].y)
 
     def polar(a, b):
-        if ((a.x - graph[0].x) * (b.y - graph[0].y) - (b.x - graph[0].x) * (a.y - graph[0].y) == 0): #if the angle of two points are same, then select the one with smaller x-value
+        if ((a.x - graph[0].x) * (b.y - graph[0].y) - (b.x - graph[0].x) * (a.y - graph[0].y) == 0):  # if the angle of two points are same, then select the one with smaller x-value
             return a.x < b.x
         else:
             return (a.x - graph[0].x) * (b.y - graph[0].y) - (b.x - graph[0].x) * (a.y - graph[0].y) > 0
 
-    def compare_position(a,b):
+    def compare_position(a, b):
         if a.y != b.y:
             return a.y - b.y
         else:
             return a.x - b.x
 
-    graph=sorted(graph,cmp=compare_position)  # put leftmost first
+    def length2(a, b):
+        return (a.x-b.x)*(a.x-b.x)+(a.y-b.y)*(a.y-b.y)
+
+    def slope_with_distance(a,b):
+        """returns the slope of the 2 points."""
+        angle_a=atan2(graph[0].x - a.x, a.y - graph[0].y)
+        angle_b=atan2(graph[0].x - b.x, b.y - graph[0].y)
+
+        if angle_a!=angle_b:
+            return angle_a-angle_b
+        else:
+            return length2(graph[0],a)-length2(graph[0],b)
+
+
+    graph = sorted(graph, cmp=compare_position)  # put leftmost first
 
     # print 'graph[0]:', graph[0]
     # graph = graph[:1] + sorted(graph[1:], cmp=polar)
     graph = graph[:1] + sorted(graph[1:], key=slope)
 
-    for p in graph:
-        print p
+    # for p in graph:
+    #     print p
 
     return graph
 
@@ -115,15 +134,18 @@ def graham_scan(graph):
     for p in sorted_points:
         while len(convex_hull) > 1 and cross_product(convex_hull[-2], convex_hull[-1], p) < 0:
             convex_hull.pop()
+
+
         convex_hull.append(p)
     elapsed = (time.clock() - start)
     print("graham_scan time used:%s" % (elapsed))
+
 
     convex_hull_key_list = []
     for point in convex_hull:
         convex_hull_key_list.append(point.key)
 
-    return convex_hull, sorted(convex_hull_key_list)
+    return convex_hull, sorted(convex_hull_key_list, key=lambda x:int(x))
 
 
 def brute_force(graph):
@@ -154,7 +176,7 @@ def brute_force(graph):
                 convex_hull.append(point1)
                 convex_hull.append(point2)
 
-    convex_hull=list(set(convex_hull))
+    convex_hull = list(set(convex_hull))
 
     elapsed = (time.clock() - start)
     print("brute_force time used:%s" % (elapsed))
@@ -166,13 +188,70 @@ def brute_force(graph):
     return convex_hull, sorted(convex_hull_key_list)
 
 
+
+def brute_force2(graph):
+    start = time.clock()
+
+    def compare_position(a, b):
+        if a.y != b.y:
+            return a.y - b.y
+        else:
+            return a.x - b.x
+    graph = sorted(graph, cmp=compare_position)  # put leftmost first
+
+    # convex_hull is a stack of points beginning with the leftmost point.
+    no_convex_hull = []
+
+    def cross_product(a, b, c):
+        value = a.x * b.y + c.x * a.y + b.x * c.y - c.x * b.y - b.x * a.y - a.x * c.y
+        return np.sign(value)
+
+    def isPointInTriangle(p0,point1,point2,point3):
+        return cross_product(p0, point1, point3) * cross_product(p0, point1, point2) > 0 and \
+        cross_product(p0, point2, point3) * cross_product(p0, point2, point1) > 0 and \
+        cross_product(point1, point2, point3) * cross_product(point1, point2, p0) > 0 and \
+               cross_product(p0, point1, point2)!= 0 and \
+               cross_product(p0, point2, point1)!=0 and \
+               cross_product(point1, point2, p0) !=0
+
+    p0=graph[0]
+    # print 'graph0',p0
+    for point1_idx in range(1,len(graph)-2):
+        point1=graph[point1_idx]
+
+        for point2_idx in range(point1_idx+1,len(graph)-1):
+            point2=graph[point2_idx]
+
+            for point3_idx in range(point2_idx+1,len(graph)):
+                point3=graph[point3_idx]
+
+                if isPointInTriangle(p0,point1,point2,point3):
+                    no_convex_hull.append(point3)
+                if isPointInTriangle(p0,point1,point3,point2):
+                    no_convex_hull.append(point2)
+                if isPointInTriangle(p0,point3,point2,point1):
+                    no_convex_hull.append(point1)
+
+    # print '\n'
+
+    convex_hull = list(set(graph)-set(no_convex_hull))
+
+    elapsed = (time.clock() - start)
+    print("brute_force time used:%s" % (elapsed))
+
+    convex_hull_key_list = []
+    for point in convex_hull:
+        convex_hull_key_list.append(point.key)
+
+    return convex_hull, sorted(convex_hull_key_list, key=lambda x:int(x))
+
 if __name__ == "__main__":
-    # graph=generate_points(10)
+    graph = generate_points(300)
 
     # for point in graph:
     #     print point
 
-    graph = read_input_file(10)
+    # graph = read_input_file(400)
     # for point in graph:
     #     print point
 
@@ -180,10 +259,9 @@ if __name__ == "__main__":
     # for point in sort_points(graph):
     #     print point
 
-
     g_graph, g_graph_list = graham_scan(graph)
-    b_graph, b_graph_list = brute_force(graph)
-
+    b_graph, b_graph_list = brute_force2(graph)
+    #
     print g_graph_list
     print b_graph_list
     print g_graph_list == b_graph_list
