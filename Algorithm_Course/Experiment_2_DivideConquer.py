@@ -2,6 +2,7 @@ import random
 import numpy as np
 import time
 import matplotlib
+import sys
 from math import atan2
 
 
@@ -29,7 +30,7 @@ def generate_points(num_of_points):
         x_info = random.randint(0, 100)
         y_info = random.randint(0, 100)
         # if x_info not in x_list and y_info not in y_list:
-        if (x_info,y_info) not in graph_list:
+        if (x_info, y_info) not in graph_list:
             graph_list.append((x_info, y_info))
             # x_list.append(x_info)
             # y_list.append(y_info)
@@ -93,7 +94,7 @@ def sort_points(graph):
         angle_b=atan2(graph[0].x - b.x, b.y - graph[0].y)
 
         if angle_a!=angle_b:
-            return angle_a-angle_b
+            return int(angle_a-angle_b+0.5)
         else:
             return length2(graph[0],a)-length2(graph[0],b)
 
@@ -101,8 +102,9 @@ def sort_points(graph):
     graph = sorted(graph, cmp=compare_position)  # put leftmost first
 
     # print 'graph[0]:', graph[0]
-    # graph = graph[:1] + sorted(graph[1:], cmp=polar)
     graph = graph[:1] + sorted(graph[1:], key=slope)
+
+    # graph = graph[:1] + sorted(graph[1:], cmp=slope_with_distance)
 
     # for p in graph:
     #     print p
@@ -188,7 +190,6 @@ def brute_force(graph):
     return convex_hull, sorted(convex_hull_key_list)
 
 
-
 def brute_force2(graph):
     start = time.clock()
 
@@ -245,29 +246,145 @@ def brute_force2(graph):
 
     return convex_hull, sorted(convex_hull_key_list, key=lambda x:int(x))
 
+MinYPoint,PolePoint=Point(0,0,0),Point(0,0,0)
+
+def divide_conquer(graph):
+    def cross_product(o, a, b):
+        return (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x)
+
+    def getPolePoint(graph):
+        ConvexHull_points, _=graham_scan(graph)
+        # print 'ConvexHull_Points--', [i.key for i in ConvexHull_points]
+        for point in graph:
+            if point not in ConvexHull_points:
+                return point
+
+
+    def getMinYPoint(graph):
+        min_point=graph[0]
+        min_point_key = 0
+        min_point_y = min_point.y
+        for point in graph[1:]:
+            if point.y<min_point_y:
+                min_point_key=point.key
+                min_point_y=point.y
+                min_point=point
+        return point
+    
+    def getMaxYPoint(graph):
+        max_point=graph[0]
+        max_point_key = 0
+        max_point_y = max_point.y
+        for point in graph[1:]:
+            if point.y<max_point_y:
+                max_point_key=point.key
+                max_point_y=point.y
+                max_point=point
+        return point
+
+    def threeWayMergeSort(leftCovexHullPoints,rightPointsAboveLine,rightPointsUnderLine):
+        return list(set(leftCovexHullPoints+rightPointsAboveLine+rightPointsUnderLine))
+
+    # MinYPoint,PolePoint=Point(0,0,0),Point(0,0,0)
+
+
+    graph_mid_x = reduce(lambda x, y: x + y, [p.x for p in graph]) / len(graph)
+    graph_mid_y = reduce(lambda x, y: x + y, [p.y for p in graph]) / len(graph)
+
+    #bound
+    if len(graph) <= 3:
+        return graph
+
+    #divide
+    left_candidata_points = []
+    right_candidata_points = []
+    for point in graph:
+        if point.x <= graph_mid_x:
+            left_candidata_points.append(point)
+        else:
+            right_candidata_points.append(point)
+
+    if len(left_candidata_points)==0 or len(right_candidata_points)==0:
+        print '---graph:', [i.key for i in graph]
+
+    #solve
+    if len(left_candidata_points)!=0 and len(right_candidata_points)!=0:
+        left_ConvexHull_points = divide_conquer(left_candidata_points)
+        right_ConvexHull_points = divide_conquer(right_candidata_points)
+
+
+    #conquer
+    try:
+        PolePoint=getPolePoint(left_ConvexHull_points)
+        MinYPoint=getMinYPoint(left_ConvexHull_points)
+    except:
+        print '---graph:', [i.key for i in graph]
+    # print  'PolePoint:',PolePoint,'---MinYPoint:',MinYPoint
+    # print '---left:',[i.key for i in left_candidata_points]
+    # print '---right:', [i.key for i in right_candidata_points]
+
+    #x1 Point_o
+    #x2 PolePoint
+    #x3 MinYPoint
+    #(X1-X3)*(Y2-Y3)-(X2-X3)*(Y1-Y3)
+    # def get_Polar_Coordinates(Point_o):
+    #     return (Point_o.x-MinYPoint.x)*(PolePoint.y-MinYPoint.y)-(PolePoint.x-MinYPoint.x)*(Point_o.y-MinYPoint.y)
+
+    # print get_Polar_Coordinates(graph[0])
+    #leftCovexHullPoints
+    # left_ConvexHull_points=sorted(left_candidata_points,key=get_Polar_Coordinates)
+    # for point in left_ConvexHull_points:
+    #     print point.key
+
+
+    g_graph, g_graph_list = graham_scan(threeWayMergeSort(left_ConvexHull_points,right_ConvexHull_points,right_ConvexHull_points))
+
+    # leftCovexHullPoints=sort_points(left_ConvexHull_points)
+    # #
+    # #
+    # # #rightPointsAboveLine, rightPointsUnderLine
+    # rightPointsAboveLine=sort_points(right_ConvexHull_points)
+    # rightPointsUnderLine=sort_points(right_ConvexHull_points)
+    #
+    # g_graph, g_graph_list = graham_scan(threeWayMergeSort(leftCovexHullPoints,rightPointsAboveLine,rightPointsUnderLine))
+    return g_graph
+
 if __name__ == "__main__":
-    graph = generate_points(300)
+    # graph = generate_points(500)
 
     # for point in graph:
     #     print point
 
-    # graph = read_input_file(400)
-    # for point in graph:
-    #     print point
+    graph = read_input_file(200)
+
+    # graph=sort_points(graph)
+    d_graph=divide_conquer(graph)
+
+    d_graph_list = []
+    for point in d_graph:
+        d_graph_list.append(point.key)
+    d_graph_list=sorted(d_graph_list, key=lambda x:int(x))
 
     # sort_points(graph)
     # for point in sort_points(graph):
     #     print point
 
     g_graph, g_graph_list = graham_scan(graph)
-    b_graph, b_graph_list = brute_force2(graph)
+    # b_graph, b_graph_list = brute_force2(graph)
     #
     print g_graph_list
-    print b_graph_list
-    print g_graph_list == b_graph_list
+
+    # print b_graph_list
+    print d_graph_list
+
+    print g_graph_list == d_graph_list
+
+
+    # print g_graph_list == b_graph_list == d_graph_list
     #
     #
     #
+
     # import matplotlib.pyplot as plt
     # import numpy as np
     #
