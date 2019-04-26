@@ -5,6 +5,7 @@ from pulp import LpMaximize, LpMinimize, lpSum, LpVariable, LpProblem, LpStatus,
 import time
 import copy
 
+random.seed(0)
 
 def data_generator(num,threshold):
     X = set([i for i in range(num)]) # 0,1,2,....,num-2,num-1
@@ -37,7 +38,7 @@ def data_generator(num,threshold):
 
     #remain subset, |F|-y
     while len(F) != num:
-        size = random.randint(1, int(threshold/2))
+        size = random.randint(1, max(int(threshold/2), 5))
         new_index=set(random.sample([i for i in range(num)], size))
         if new_index in F:
             continue
@@ -95,9 +96,10 @@ def LP_set_cover(X, F):
         occur = {}
         for index, f in enumerate(F):
             if x in f:
-                occur["S" + str(index)] = 1.0
+                occur["S" + str(index)] = 1
             else:
-                occur["S" + str(index)] = 0.0
+                occur["S" + str(index)] = 0
+        # print x,'-',occur
         all_occur.append(occur)
 
     C_S={}
@@ -107,24 +109,27 @@ def LP_set_cover(X, F):
     # print F
     # print C_S
 
+
     lp += lpSum([lp_vars[i]*C_S[i] for i in var_name])
 
     for occur in all_occur:
-        lp += lpSum([occur[i] * lp_vars[i] for i in var_name]) >= 1.0
+        lp += lpSum([occur[i] * lp_vars[i] for i in var_name]) >= 1
 
     solve_state=lp.solve()
 
-    print solve_state
-    print("Status:", LpStatus[lp.status])
-    print(value(lp.objective))
+    # print solve_state
+    # print("Status:", LpStatus[lp.status])
+    # print(value(lp.objective))
+
 
     result = []
     max_count = max([sum(occur.values()) for occur in all_occur])
 
-    for v, f in zip(lp.variables(), F):
+    for v in lp.variables():
         # print(v.name, "=", v.varValue)
-        if v.varValue > 1 / max_count:
-            result.append(f)
+        if v.varValue > (1.0/max_count):
+            result.append(F[int(v.name[4:])])
+
 
     elapsed = (time.clock() - start)
 
@@ -137,7 +142,10 @@ def LP_set_cover(X, F):
     print("Test LP_set_cover Time used:%s, F'size:%s"%(elapsed,len(X)))
     print("C's size: %d \ncover all elements in X:%s" % (len(result), _check))
 
-    return result
+    # print result
+    # print F
+    # print F_set
+
 
 
 def plot(C, num):
@@ -167,10 +175,10 @@ def plot(C, num):
 if __name__ == "__main__":
 
     # nums = [64, 256, 512, 1024, 2048, 4096]
-    nums = [20]
+    nums = [200]
     # nums = [10, 20, 30, 40, 50]
 
-    threshold=5
+    threshold=30
     for num in nums:
 
         print 'Generate Data, nums of data:%s, threshold:%s'%(num, threshold)
