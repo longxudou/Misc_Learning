@@ -27,8 +27,8 @@ def generate_points(num_of_points):
     x_list = []
     y_list = []
     while point_num < num_of_points:
-        x_info = random.randint(0, 100)
-        y_info = random.randint(0, 100)
+        x_info = random.randint(0, 10000)
+        y_info = random.randint(0, 10000)
         # if x_info not in x_list and y_info not in y_list:
         if (x_info, y_info) not in graph_list:
             graph_list.append((x_info, y_info))
@@ -128,7 +128,7 @@ def graham_scan(graph):
     def cross_product(o, a, b):
         return (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x)
 
-    start = time.clock()
+
     # convex_hull is a stack of points beginning with the leftmost point.
     convex_hull = []
     sorted_points = sort_points(graph)
@@ -139,8 +139,7 @@ def graham_scan(graph):
 
 
         convex_hull.append(p)
-    elapsed = (time.clock() - start)
-    print("graham_scan time used:%s" % (elapsed))
+
 
 
     convex_hull_key_list = []
@@ -259,37 +258,88 @@ def divide_conquer(graph):
             if point not in ConvexHull_points:
                 return point
 
-
     def getMinYPoint(graph):
         min_point=graph[0]
-        min_point_key = 0
+        min_point_idx = 0
         min_point_y = min_point.y
-        for point in graph[1:]:
+        for point_idx in range(len(graph[1:])):
+            point=graph[point_idx]
             if point.y<min_point_y:
-                min_point_key=point.key
+                min_point_idx=point_idx
                 min_point_y=point.y
                 min_point=point
-        return point
+        return point, min_point_idx
 
     def getMaxYPoint(graph):
         max_point=graph[0]
-        max_point_key = 0
+        max_point_idx = 0
         max_point_y = max_point.y
-        for point in graph[1:]:
+        for point_idx in range(len(graph[1:])):
+            point=graph[point_idx]
             if point.y<max_point_y:
-                max_point_key=point.key
+                max_point_idx=point_idx
                 max_point_y=point.y
                 max_point=point
-        return point
+        return point, max_point_idx
 
-    def threeWayMergeSort(leftCovexHullPoints,rightPointsAboveLine,rightPointsUnderLine):
-        return list(set(leftCovexHullPoints+rightPointsAboveLine+rightPointsUnderLine))
+    def TwowayMergeSort(left_ConvexHull_points, right_ConvexHull_points):
+        return list(set(left_ConvexHull_points + right_ConvexHull_points))
 
-    # MinYPoint,PolePoint=Point(0,0,0),Point(0,0,0)
+    def TwowayMergeSort2(left_ConvexHull_points,right_ConvexHull_points):
+        n1=len(left_ConvexHull_points)
+        n2=len(right_ConvexHull_points)
+
+        Left_Max_Point, Left_Max_Point_idx =getMaxYPoint(left_ConvexHull_points)
+        Right_Min_Point, Right_Min_Point_idx=getMinYPoint(right_ConvexHull_points)
+
+        print Left_Max_Point.key,Left_Max_Point_idx
+        print Right_Min_Point.key,Right_Min_Point_idx
+        #finding the upper tangent
+        inda=Left_Max_Point_idx
+        indb=Right_Min_Point_idx
+        Done=False
+        while not Done:
+            Done = True
+            while cross_product(right_ConvexHull_points[indb],left_ConvexHull_points[inda],left_ConvexHull_points[(inda+1)%n1])>=0:
+                inda = (inda+1)%n1
+
+            while cross_product(left_ConvexHull_points[inda],right_ConvexHull_points[indb],right_ConvexHull_points[(n2+indb-1)%n2])<=0:
+                indb = (n2+indb-1)%n2
+                Done=False
+        upper_left=inda
+        upper_right=indb
 
 
-    graph_mid_x = reduce(lambda x, y: x + y, [p.x for p in graph]) / len(graph)
+        #finding the lowest tangent
+        inda=Left_Max_Point_idx
+        indb=Right_Min_Point_idx
+        Done=False
+        while not Done:
+            Done = True
+            while cross_product(left_ConvexHull_points[inda],right_ConvexHull_points[indb],right_ConvexHull_points[(indb+1)%n2])>=0:
+                indb = (indb + 1) % n2
+            while cross_product(right_ConvexHull_points[indb],left_ConvexHull_points[inda],left_ConvexHull_points[(n1+inda-1)%n1])<=0:
+                inda = (n1+inda - 1) % n1
+                Done=True
 
+        lower_left=inda
+        lower_right=indb
+
+        print upper_right,lower_right,upper_left,lower_left
+        # ret=[]
+        # ind=upper_left
+        # ret.append(left_ConvexHull_points[ind])
+        # while ind!=lower_left:
+        #     ind = (ind+1) % n1
+        #     ret.append(left_ConvexHull_points[ind])
+        #
+        # ind=lower_right
+        # ret.append(left_ConvexHull_points[ind])
+        # while ind!=upper_right:
+        #     ind = (ind+1) % n1
+        #     ret.append(left_ConvexHull_points[ind])
+
+        return list(set(left_ConvexHull_points+right_ConvexHull_points))
     #bound
     if len(graph) <= 3:
         return graph
@@ -297,67 +347,34 @@ def divide_conquer(graph):
     #divide
     left_candidata_points = graph[:len(graph)/2]
     right_candidata_points = graph[len(graph)/2:]
-    # for point in graph:
-    #     if point.x <= graph_mid_x:
-    #         left_candidata_points.append(point)
-    #     else:
-    #         right_candidata_points.append(point)
-
-    if len(left_candidata_points)==0 or len(right_candidata_points)==0:
-        print '---graph:', [i.key for i in graph]
 
     #solve
     if len(left_candidata_points)!=0 and len(right_candidata_points)!=0:
         left_ConvexHull_points = divide_conquer(left_candidata_points)
         right_ConvexHull_points = divide_conquer(right_candidata_points)
 
-
     #conquer
-    try:
-        PolePoint=getPolePoint(left_ConvexHull_points)
-        MinYPoint=getMinYPoint(left_ConvexHull_points)
-    except:
-        print '---graph:', [i.key for i in graph]
-    # print  'PolePoint:',PolePoint,'---MinYPoint:',MinYPoint
-    # print '---left:',[i.key for i in left_ConvexHull_points]
-    # print '---right:', [i.key for i in right_ConvexHull_points]
-
-    #x1 Point_o
-    #x2 PolePoint
-    #x3 MinYPoint
-    #(X1-X3)*(Y2-Y3)-(X2-X3)*(Y1-Y3)
-    # def get_Polar_Coordinates(Point_o):
-    #     return (Point_o.x-MinYPoint.x)*(PolePoint.y-MinYPoint.y)-(PolePoint.x-MinYPoint.x)*(Point_o.y-MinYPoint.y)
-
-    # print get_Polar_Coordinates(graph[0])
-    #leftCovexHullPoints
-    # left_ConvexHull_points=sorted(left_candidata_points,key=get_Polar_Coordinates)
-    # for point in left_ConvexHull_points:
-    #     print point.key
-
-
-    g_graph, g_graph_list = graham_scan(threeWayMergeSort(left_ConvexHull_points,right_ConvexHull_points,right_ConvexHull_points))
-
-    # leftCovexHullPoints=sort_points(left_ConvexHull_points)
-    # #
-    # #
-    # # #rightPointsAboveLine, rightPointsUnderLine
-    # rightPointsAboveLine=sort_points(right_ConvexHull_points)
-    # rightPointsUnderLine=sort_points(right_ConvexHull_points)
-    #
-    # g_graph, g_graph_list = graham_scan(threeWayMergeSort(leftCovexHullPoints,rightPointsAboveLine,rightPointsUnderLine))
+    g_graph, g_graph_list = graham_scan(TwowayMergeSort(left_ConvexHull_points,right_ConvexHull_points))
     return g_graph
 
 if __name__ == "__main__":
-    # graph = generate_points(500)
+    graph = generate_points(10)
 
     # for point in graph:
     #     print point
 
-    graph = read_input_file(100)
+
+    # graph = read_input_file(1000)
+
+
+    start = time.clock()
+
+    #sorting the set of points according to the x-coordinate
 
     graph=sorted(graph,key=lambda p:p.x)
     d_graph=divide_conquer(graph)
+    elapsed = (time.clock() - start)
+    print("divide_conquer time used:%s" % (elapsed))
 
     d_graph_list = []
     for point in d_graph:
@@ -368,8 +385,11 @@ if __name__ == "__main__":
     # for point in sort_points(graph):
     #     print point
 
+    start = time.clock()
     g_graph, g_graph_list = graham_scan(graph)
-    b_graph, b_graph_list = brute_force2(graph)
+    elapsed = (time.clock() - start)
+    print("graham_scan time used:%s" % (elapsed))
+    # b_graph, b_graph_list = brute_force2(graph)
     #
     print g_graph_list
 
@@ -379,7 +399,7 @@ if __name__ == "__main__":
     print g_graph_list == d_graph_list
 
 
-    print g_graph_list == b_graph_list == d_graph_list
+    # print g_graph_list == b_graph_list == d_graph_list
     #
     #
     #
