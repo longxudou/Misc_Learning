@@ -270,7 +270,7 @@ def divide_conquer(graph):
                 min_point_y=point.y
                 min_point=point
         return point
-    
+
     def getMaxYPoint(graph):
         max_point=graph[0]
         max_point_key = 0
@@ -289,20 +289,19 @@ def divide_conquer(graph):
 
 
     graph_mid_x = reduce(lambda x, y: x + y, [p.x for p in graph]) / len(graph)
-    graph_mid_y = reduce(lambda x, y: x + y, [p.y for p in graph]) / len(graph)
 
     #bound
     if len(graph) <= 3:
         return graph
 
     #divide
-    left_candidata_points = []
-    right_candidata_points = []
-    for point in graph:
-        if point.x <= graph_mid_x:
-            left_candidata_points.append(point)
-        else:
-            right_candidata_points.append(point)
+    left_candidata_points = graph[:len(graph)/2]
+    right_candidata_points = graph[len(graph)/2:]
+    # for point in graph:
+    #     if point.x <= graph_mid_x:
+    #         left_candidata_points.append(point)
+    #     else:
+    #         right_candidata_points.append(point)
 
     if len(left_candidata_points)==0 or len(right_candidata_points)==0:
         print '---graph:', [i.key for i in graph]
@@ -320,8 +319,8 @@ def divide_conquer(graph):
     except:
         print '---graph:', [i.key for i in graph]
     # print  'PolePoint:',PolePoint,'---MinYPoint:',MinYPoint
-    # print '---left:',[i.key for i in left_candidata_points]
-    # print '---right:', [i.key for i in right_candidata_points]
+    # print '---left:',[i.key for i in left_ConvexHull_points]
+    # print '---right:', [i.key for i in right_ConvexHull_points]
 
     #x1 Point_o
     #x2 PolePoint
@@ -355,9 +354,9 @@ if __name__ == "__main__":
     # for point in graph:
     #     print point
 
-    graph = read_input_file(200)
+    graph = read_input_file(100)
 
-    # graph=sort_points(graph)
+    graph=sorted(graph,key=lambda p:p.x)
     d_graph=divide_conquer(graph)
 
     d_graph_list = []
@@ -370,7 +369,7 @@ if __name__ == "__main__":
     #     print point
 
     g_graph, g_graph_list = graham_scan(graph)
-    # b_graph, b_graph_list = brute_force2(graph)
+    b_graph, b_graph_list = brute_force2(graph)
     #
     print g_graph_list
 
@@ -380,7 +379,7 @@ if __name__ == "__main__":
     print g_graph_list == d_graph_list
 
 
-    # print g_graph_list == b_graph_list == d_graph_list
+    print g_graph_list == b_graph_list == d_graph_list
     #
     #
     #
