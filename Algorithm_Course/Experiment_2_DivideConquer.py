@@ -18,6 +18,7 @@ class Point:
         # return str(self.key) + ',\t' + str(f(self.x)) + ',\t' + str(f(self.y))
         return str(self.key)
 
+
 def generate_points(num_of_points):
     start = time.clock()
 
@@ -73,12 +74,6 @@ def sort_points(graph):
         """returns the slope of the 2 points."""
         return atan2(graph[0].x - a.x, a.y - graph[0].y)
 
-    def polar(a, b):
-        if ((a.x - graph[0].x) * (b.y - graph[0].y) - (b.x - graph[0].x) * (a.y - graph[0].y) == 0):  # if the angle of two points are same, then select the one with smaller x-value
-            return a.x < b.x
-        else:
-            return (a.x - graph[0].x) * (b.y - graph[0].y) - (b.x - graph[0].x) * (a.y - graph[0].y) > 0
-
     def compare_position(a, b):
         if a.y != b.y:
             return a.y - b.y
@@ -98,17 +93,8 @@ def sort_points(graph):
         else:
             return length2(graph[0],a)-length2(graph[0],b)
 
-
     graph = sorted(graph, cmp=compare_position)  # put leftmost first
-
-    # print 'graph[0]:', graph[0]
     graph = graph[:1] + sorted(graph[1:], key=slope)
-
-    # graph = graph[:1] + sorted(graph[1:], cmp=slope_with_distance)
-
-    # for p in graph:
-    #     print p
-
     return graph
 
 
@@ -116,18 +102,10 @@ def graham_scan(graph):
     """Takes an array of points to be scanned.
     Returns an array of points that make up the convex hull surrounding the points passed in in graph.
     """
-
-    def compare_position(a, b):
-        if (a.y < b.y) or (a.y == b.y and a.x < b.x):
-            return a
-        else:
-            return b
-
     # OA x OB
     # greater than 0 -> counterclockwise from OA->OB
     def cross_product(o, a, b):
         return (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x)
-
 
     # convex_hull is a stack of points beginning with the leftmost point.
     convex_hull = []
@@ -136,11 +114,7 @@ def graham_scan(graph):
     for p in sorted_points:
         while len(convex_hull) > 1 and cross_product(convex_hull[-2], convex_hull[-1], p) < 0:
             convex_hull.pop()
-
-
         convex_hull.append(p)
-
-
 
     convex_hull_key_list = []
     for point in convex_hull:
@@ -198,7 +172,6 @@ def brute_force2(graph):
         else:
             return a.x - b.x
     graph = sorted(graph, cmp=compare_position)  # put leftmost first
-
     # convex_hull is a stack of points beginning with the leftmost point.
     no_convex_hull = []
 
@@ -218,13 +191,10 @@ def brute_force2(graph):
     # print 'graph0',p0
     for point1_idx in range(1,len(graph)-2):
         point1=graph[point1_idx]
-
         for point2_idx in range(point1_idx+1,len(graph)-1):
             point2=graph[point2_idx]
-
             for point3_idx in range(point2_idx+1,len(graph)):
                 point3=graph[point3_idx]
-
                 if isPointInTriangle(p0,point1,point2,point3):
                     no_convex_hull.append(point3)
                 if isPointInTriangle(p0,point1,point3,point2):
@@ -232,17 +202,12 @@ def brute_force2(graph):
                 if isPointInTriangle(p0,point3,point2,point1):
                     no_convex_hull.append(point1)
 
-    # print '\n'
-
     convex_hull = list(set(graph)-set(no_convex_hull))
-
     elapsed = (time.clock() - start)
     print("brute_force time used:%s" % (elapsed))
-
     convex_hull_key_list = []
     for point in convex_hull:
         convex_hull_key_list.append(point.key)
-
     return convex_hull, sorted(convex_hull_key_list, key=lambda x:int(x))
 
 MinYPoint,PolePoint=Point(0,0,0),Point(0,0,0)
@@ -250,14 +215,12 @@ MinYPoint,PolePoint=Point(0,0,0),Point(0,0,0)
 def divide_conquer(graph):
     def cross_product(o, a, b):
         return (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x)
-
     def getPolePoint(graph):
         ConvexHull_points, _=graham_scan(graph)
         # print 'ConvexHull_Points--', [i.key for i in ConvexHull_points]
         for point in graph:
             if point not in ConvexHull_points:
                 return point
-
     def getMinYPoint(graph):
         min_point=graph[0]
         min_point_idx = 0
@@ -269,7 +232,6 @@ def divide_conquer(graph):
                 min_point_y=point.y
                 min_point=point
         return point, min_point_idx
-
     def getMaxYPoint(graph):
         max_point=graph[0]
         max_point_idx = 0
@@ -281,10 +243,8 @@ def divide_conquer(graph):
                 max_point_y=point.y
                 max_point=point
         return point, max_point_idx
-
     def TwowayMergeSort(left_ConvexHull_points, right_ConvexHull_points):
         return list(set(left_ConvexHull_points + right_ConvexHull_points))
-
     def TwowayMergeSort2(left_ConvexHull_points,right_ConvexHull_points):
         n1=len(left_ConvexHull_points)
         n2=len(right_ConvexHull_points)
@@ -298,6 +258,7 @@ def divide_conquer(graph):
         inda=Left_Max_Point_idx
         indb=Right_Min_Point_idx
         Done=False
+
         while not Done:
             Done = True
             while cross_product(right_ConvexHull_points[indb],left_ConvexHull_points[inda],left_ConvexHull_points[(inda+1)%n1])>=0:
@@ -306,6 +267,7 @@ def divide_conquer(graph):
             while cross_product(left_ConvexHull_points[inda],right_ConvexHull_points[indb],right_ConvexHull_points[(n2+indb-1)%n2])<=0:
                 indb = (n2+indb-1)%n2
                 Done=False
+
         upper_left=inda
         upper_right=indb
 
@@ -358,47 +320,45 @@ def divide_conquer(graph):
     return g_graph
 
 if __name__ == "__main__":
-    graph = generate_points(10)
+    for num_points in [100,200,300,400,500]:
+        # graph = generate_points(num_points)
 
-    # for point in graph:
-    #     print point
-
-
-    # graph = read_input_file(1000)
+        print '\n----num of points:%s----'%(num_points)
+        graph = read_input_file(num_points)
 
 
-    start = time.clock()
+        start = time.clock()
 
-    #sorting the set of points according to the x-coordinate
+        #sorting the set of points according to the x-coordinate
 
-    graph=sorted(graph,key=lambda p:p.x)
-    d_graph=divide_conquer(graph)
-    elapsed = (time.clock() - start)
-    print("divide_conquer time used:%s" % (elapsed))
+        graph=sorted(graph,key=lambda p:p.x)
+        d_graph=divide_conquer(graph)
+        elapsed = (time.clock() - start)
+        print("divide_conquer time used:%s" % (elapsed))
 
-    d_graph_list = []
-    for point in d_graph:
-        d_graph_list.append(point.key)
-    d_graph_list=sorted(d_graph_list, key=lambda x:int(x))
+        d_graph_list = []
+        for point in d_graph:
+            d_graph_list.append(point.key)
+        d_graph_list=sorted(d_graph_list, key=lambda x:int(x))
 
-    # sort_points(graph)
-    # for point in sort_points(graph):
-    #     print point
+        # sort_points(graph)
+        # for point in sort_points(graph):
+        #     print point
 
-    start = time.clock()
-    g_graph, g_graph_list = graham_scan(graph)
-    elapsed = (time.clock() - start)
-    print("graham_scan time used:%s" % (elapsed))
-    # b_graph, b_graph_list = brute_force2(graph)
+        start = time.clock()
+        g_graph, g_graph_list = graham_scan(graph)
+        elapsed = (time.clock() - start)
+        print("graham_scan time used:%s" % (elapsed))
+        b_graph, b_graph_list = brute_force2(graph)
     #
-    print g_graph_list
-
+    # print g_graph_list
+    #
     # print b_graph_list
-    print d_graph_list
-
-    print g_graph_list == d_graph_list
-
-
+    # print d_graph_list
+    #
+    # print g_graph_list == d_graph_list
+    #
+    #
     # print g_graph_list == b_graph_list == d_graph_list
     #
     #

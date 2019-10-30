@@ -11,31 +11,24 @@ def data_generator(num,threshold):
     X = set([i for i in range(num)]) # 0,1,2,....,num-2,num-1
     F = []
     selected_index = set()
-
-    # s0_index
     s0_index = set(random.sample([i for i in range(num)],threshold))
     F.append(s0_index)
     selected_index=selected_index|s0_index
-
     #Feasible subset, size:y
     while True:
         if num - len(selected_index) < threshold:
             new_index = X - set(selected_index)
             F.append(new_index)
             break
-
         sample_size = random.randint(1, threshold)
         sample_size_former = random.randint(1, sample_size)
-
         sample_num_from_former=set(random.sample(list(selected_index),sample_size_former))
         sample_num_from_later=set(random.sample(list(X-selected_index),sample_size-sample_size_former))
-
         Si_index=sample_num_from_former|sample_num_from_later
         if Si_index in F:
             continue
         F.append(Si_index)
         selected_index=selected_index|Si_index
-
     #remain subset, |F|-y
     while len(F) != num:
         size = random.randint(1, max(int(threshold/2), 5))
@@ -43,7 +36,6 @@ def data_generator(num,threshold):
         if new_index in F:
             continue
         F.append(set(new_index))
-
     return X, F
 
 
@@ -62,8 +54,6 @@ def greedy_set_cover(X, _F):
             if length > max:
                 candidate = f
                 max = length
-
-        # print candidate
 
         covered = covered | candidate
         result.append(candidate)
@@ -85,12 +75,9 @@ def greedy_set_cover(X, _F):
 
 def LP_set_cover(X, F):
     start = time.clock()
-
     var_name = ["S" + str(x) for x in range(len(F))]
     lp = LpProblem("The Problem of set cover", LpMinimize)
-
     lp_vars = LpVariable.dicts("lp", var_name, lowBound=0, upBound=1, cat=LpContinuous)
-
     all_occur = []
     for x in X:
         occur = {}
@@ -99,40 +86,22 @@ def LP_set_cover(X, F):
                 occur["S" + str(index)] = 1
             else:
                 occur["S" + str(index)] = 0
-        # print x,'-',occur
         all_occur.append(occur)
 
     C_S={}
     for x in range(len(F)):
         C_S["S" + str(x)]=len(F[x])
-    #
-    # print F
-    # print C_S
-
-
-    lp += lpSum([lp_vars[i]*C_S[i] for i in var_name])
-
+    lp += lpSum([lp_vars[i] for i in var_name])
     for occur in all_occur:
         lp += lpSum([occur[i] * lp_vars[i] for i in var_name]) >= 1
-
     solve_state=lp.solve()
-
-    # print solve_state
-    # print("Status:", LpStatus[lp.status])
-    # print(value(lp.objective))
-
-
     result = []
     max_count = max([sum(occur.values()) for occur in all_occur])
 
     for v in lp.variables():
-        # print(v.name, "=", v.varValue)
         if v.varValue > (1.0/max_count):
             result.append(F[int(v.name[4:])])
-
-
     elapsed = (time.clock() - start)
-
     F_set = set()
     for i in result:
         F_set = F_set | i
@@ -174,8 +143,8 @@ def plot(C, num):
 
 if __name__ == "__main__":
 
-    # nums = [64, 256, 512, 1024, 2048, 4096]
-    nums = [200]
+    nums = [64, 256, 512, 1024, 2048, 4096]
+    # nums = [200]
     # nums = [10, 20, 30, 40, 50]
 
     threshold=30
