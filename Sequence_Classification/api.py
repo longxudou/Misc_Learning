@@ -14,11 +14,11 @@ def get_access_token():
     return access_token
 
 
-def query_one(data,access_token):
+def query(query_list,access_token):
     result=[]
     request_url = "https://aip.baidubce.com/rpc/2.0/ai_custom_pro/v1/text_cls/mooc_v1" + "?access_token=" + access_token
 
-    for token in data:
+    for token in query_list:
         query={'text':token}
         response = requests.post(request_url, data=json.dumps(query))
         content = response.json()
@@ -27,15 +27,11 @@ def query_one(data,access_token):
         score = content['results'][0]['score']
 
         result.append((tag,score))
-    return content
-
-def query(input_token_list):
-    access_token=get_access_token()
-    result=query_one(input_token_list,access_token)
     return result
 
 if __name__ == '__main__':
-    input_token_list=['我们说采购管理的一个基本的思想是什么？']
-    result=query(input_token_list)
+    query_list=['我们说采购管理的一个基本的思想是什么？']
+    access_token = get_access_token()
+    result=query(query_list, access_token)
     print(result)
 

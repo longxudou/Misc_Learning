@@ -1,7 +1,9 @@
 import re,json,os, argparse
 from collections import Counter
-from api import query
+from Sequence_Classification.api import query, get_access_token
 TIME_INTERVAL=30
+
+access_token = get_access_token()
 
 def divide(path):
     with open(path, 'r') as f:
@@ -28,7 +30,7 @@ def divide(path):
         if 0<start<=end<TIME_INTERVAL:
             if index==0 or int(lines[index*3-2][23:25])<TIME_INTERVAL:
                 tmp.append(sentence)
-            else:
+            elif tmp!=[]:
                 collect.append(tmp)
                 tmp=[sentence]
 
@@ -48,7 +50,7 @@ def divide(path):
         elif TIME_INTERVAL<start<=end:
             if index == 0 or int(lines[index * 3 - 2][6:8]) > TIME_INTERVAL:
                 tmp.append(sentence)
-            else:
+            elif tmp!=[]:
                 collect.append(tmp)
                 tmp=[sentence]
 
@@ -59,11 +61,9 @@ def divide(path):
 def set_tag_for_interval(list_of_interval):
     result = []
     for list_of_sentence in list_of_interval[:2]:
-        per_sentence_tag=query(list_of_sentence)
-        tag_frequence=Counter([i['name'] for i in per_sentence_tag['results']])
+        per_sentence_tag=query(list_of_sentence, access_token)
+        tag_frequence=Counter([i[0] for i in per_sentence_tag])
         result.append(tag_frequence.most_common(1)[0][0])
-
-
     return result
 
 if __name__ == '__main__':
