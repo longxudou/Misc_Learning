@@ -1,5 +1,6 @@
 import re,json,os, argparse
-import time
+import time, xlrd, xlsxwriter
+from datetime import datetime
 from collections import Counter
 from Sequence_Classification.api import query, get_access_token
 TIME_INTERVAL=30
@@ -103,9 +104,39 @@ def set_tag_for_interval(list_of_interval):
 
     return result
 
+def write_xls(result):
+    # Create a workbook and add a worksheet.
+    workbook = xlsxwriter.Workbook('sample.xlsx')
+    worksheet = workbook.add_worksheet()
+
+    #('5-6', '0:0:31', '0:0:43', '啊。啊。', 'teach')
+    # Write some data headers.
+    worksheet.write('A1', 'Index')
+    worksheet.write('B1', 'Start')
+    worksheet.write('C1', 'End')
+    worksheet.write('D1', 'Text')
+    worksheet.write('E1', 'Tag')
+
+    # Start from the first cell below the headers.
+    row = 1
+    col = 0
+
+    for Index, Start, End, Text, Tag in (result):
+        # Convert the date string into a datetime object.
+        worksheet.write_string(row, col, Index)
+        worksheet.write_string(row, col + 1, Start)
+        worksheet.write_string(row, col + 2, End)
+        worksheet.write_string(row, col + 3, Text)
+        worksheet.write_string(row, col + 4, Tag)
+        row += 1
+    workbook.close()
+
 if __name__ == '__main__':
     path_list=['/Users/longxud/Downloads/time/2020-03-10.srt']
     for file_path in path_list:
         list_of_interval=divide(file_path)
         result=set_tag_for_interval(list_of_interval[:2])
         print(result)
+
+        # file = open('sample.xls', 'wb')
+        write_xls(result)
