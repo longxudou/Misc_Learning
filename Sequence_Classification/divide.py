@@ -181,7 +181,8 @@ if __name__ == '__main__':
         # list_of_interval=divide(file_path)
         # result=set_tag_for_interval(list_of_interval[:5])
         # print(result)
-        # merge_interval_based_on_tag(result)
+        # result=merge_interval_based_on_tag(result)
+        # result = compute_duration(result)
         # write_xls(result,file_name='sample.xlsx')
 
     ###=======run on sample xlsx======
