@@ -145,11 +145,16 @@ def compute_duration(interval_list):
         start_time = list(map(int, interval[1].split(':')))
         end_time = list(map(int, interval[2].split(':')))
 
-        sec = (end_time[2] - start_time[2]) + (end_time[1] - start_time[1]) * 60 + (end_time[0] - start_time[0]) * 3600
+        # sec = (end_time[2] - start_time[2]) + (end_time[1] - start_time[1]) * 60 + (end_time[0] - start_time[0]) * 3600
+        sec =(end_time[1] - start_time[1]) * 60 + (end_time[0] - start_time[0]) * 3600
+
+        sec_start=0 if start_time[2]<=30 else 30
+        sec_end=30 if start_time[2]<=30 else 60
+        sec += sec_end-sec_start
+
 
         m = sec // 60
         s = sec % 60
-
         interval = list(interval)
         interval.insert(3, f"{m}:{s}")
         result.append(interval)
